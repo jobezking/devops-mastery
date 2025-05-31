@@ -1,0 +1,107 @@
+// Jenkinsfile (Declarative Pipeline)
+
+pipeline {
+    agent any // Specifies that Jenkins can use any available agent to run the pipeline
+
+    tools {
+        // Define the JDK and Maven versions to use.
+        // These must be pre-configured in Jenkins Global Tool Configuration.
+        jdk 'jdk11' // Replace 'jdk11' with your configured JDK name
+        maven 'maven3' // Replace 'maven3' with your configured Maven name
+    }
+
+    stages {
+        stage('Checkout SCM') {
+            steps {
+                // Checkout source code from your SCM (e.g., Git)
+                // This step assumes your Jenkins job is configured with an SCM,
+                // typically Git. Jenkins will automatically check out the code.
+                // For explicit checkout, you can use:
+                // git url: 'https://your-repo-url.git', branch: 'main'
+                echo 'Checking out source code...'
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Compile the Java application using Maven
+                echo 'Building the application...'
+                // For Windows agents, use bat: bat 'mvn clean install'
+                // For Linux/macOS agents, use sh: sh 'mvn clean install'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn clean install -DskipTests' // Skip tests here, run them in a dedicated stage
+                    } else {
+                        bat 'mvn clean install -DskipTests'
+                    }
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                // Run unit tests using Maven
+                echo 'Running tests...'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn test'
+                    } else {
+                        bat 'mvn test'
+                    }
+                }
+            }
+            post {
+                // Always archive JUnit test results
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                // Archive the build artifact (e.g., JAR or WAR file)
+                echo 'Archiving artifacts...'
+                // Adjust the path and pattern based on your project's output
+                // For example, if your project builds a WAR file:
+                // archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+
+        // Optional: Add a Deploy stage if needed
+        /*
+        stage('Deploy') {
+            when {
+                branch 'main' // Only deploy if the branch is 'main'
+            }
+            steps {
+                echo 'Deploying application...'
+                // Add your deployment steps here
+                // e.g., sh './deploy-script.sh'
+            }
+        }
+        */
+    }
+
+    post {
+        // Actions to perform after the pipeline completes, regardless of status
+        always {
+            echo 'Pipeline finished.'
+            // Clean up the workspace
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline executed successfully!'
+            // Add notifications for success (e.g., email, Slack)
+        }
+        failure {
+            echo 'Pipeline failed.'
+            // Add notifications for failure
+        }
+        unstable {
+            echo 'Pipeline is unstable (e.g., tests failed).'
+        }
+    }
+}
