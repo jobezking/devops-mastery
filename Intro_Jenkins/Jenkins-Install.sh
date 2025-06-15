@@ -17,8 +17,10 @@ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 
 sudo adduser jenkinsuser
 sudo usermod -aG sudo jenkinsuser
-cd /home/jenkinsuser
-ssh-keygen
+cd mkdir -p $1/.ssh
+mkdir -p /home/jenkinsuser/.ssh
+cd /home/jenkinsuser/.ssh
+ssh-keygen -b 4096 -t rsa -f /home/jenkinsuser/.ssh/id_rsa -N thisismycert
 cat /home/jenkinsuser/.ssh/id_rsa.pub 
 
 ################ container (Docker) deployment
