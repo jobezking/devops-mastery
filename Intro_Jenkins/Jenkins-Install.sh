@@ -17,7 +17,8 @@ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 
 sudo adduser jenkinsuser
 sudo usermod -aG sudo jenkinsuser
-cd mkdir -p $1/.ssh
+su jenkinsuser
+cd /home/jenkinsuser
 mkdir -p /home/jenkinsuser/.ssh
 cd /home/jenkinsuser/.ssh
 ssh-keygen -b 4096 -t rsa -f /home/jenkinsuser/.ssh/id_rsa -N thisismycert
