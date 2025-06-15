@@ -37,3 +37,8 @@ Adding SSH keys
 4. Copy output 
 5. On Gitlab UI > SSH Keys > Add an SSH key
 6. Paste 4. Into Key text box, give it a Title and click Add key button
+
+Configure client i.e. Gitlab runner to access Gitlab server
+openssl s_client -showcerts -connect gitlab.hostname:443 -servername gitlab.hostname < /dev/null 2>/dev/null | openssl x509 -outform PEM > gitlab.crt
+sudo cp gitlab.crt /usr/local/share/ca-certificates
+sudo update-ca-certificates
